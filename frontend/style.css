@@ -1,0 +1,94 @@
+body{
+    margin:0;
+    padding: 0;
+    font-family: "Spectral SC", serif;
+    justify-items: center;
+    background-color: #e9f1f8;
+}
+
+.navbar, .left, .right{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0px 10px ;
+}
+
+.logo{
+    height: 40px;
+    width: 40px;
+    background-image: url(./images/logo.jpeg);
+    background-position: center;
+    border-radius: 50px;
+    background-size: contain;
+    margin: 2px 10px;
+    border: 0.5px black solid;
+}
+
+a{
+    text-decoration: none;
+    color: black;
+}
+
+.left{
+    width: 30%;
+    display: flex;
+    justify-content: space-evenly;
+}
+.right{
+    width: 70%;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.right i{
+    color: #5462E8;
+    font-size: 20px;
+}
+
+.main{
+    height: 80vh;
+    width: 94vw;
+    background-image: url(./images/bgg.jpg);
+    background-size: 1200px 480px;
+    border-radius: 30px;
+    align-items: center;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 5px 8px 12px rgba(0,0,0,0.4);
+}
+
+/* Form Section */
+.url-form {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.url-form input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #AAB6FF;
+    border-radius: 10px;
+    outline: none;
+    font-size: 15px;
+    background: #F5F7FF;
+}
+
+.url-form button {
+    padding: 12px 30px;
+    background-color: #5462E8;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.url-form button:hover {
+    background-color: #6F7CFA;
+}

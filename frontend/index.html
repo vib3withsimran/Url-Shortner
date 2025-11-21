@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shortly- URL shortener</title>
+    <link rel="stylesheet" href="./style.css"/>
+    <link rel="icon" href="./images/logo.jpeg"/>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+      integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Spectral+SC:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="left">
+        <div class="logo"></div>
+        <h3>Shortly- URL Shortener</h3>
+      </div>
+      <div class="right">
+        <span>Hi! This side, Simran :)</span>
+        <a href="https://www.linkedin.com/in/mssimran/"
+          >LinkedIn<i class="fa-brands fa-linkedin"></i
+        ></a>
+        <a href="https://github.com/vib3withsimran"
+          >Github<i class="fa-brands fa-github"></i
+        ></a>
+      </div>
+    </div>
+
+    <div class="main">
+      <h2>Shorten Your Long URLs in Seconds</h2>
+      <h4>
+        A fast and clean URL shortener that makes your links shareable
+        instantly.
+      </h4>
+
+      <!-- Form Section -->
+      <form class="url-form" target="_blank" action="http://localhost:8080/main" method="POST">
+        <label for="longUrl" class="form-label"
+          >Paste your long URL below</label>
+        <input
+          type="text"
+          id="longUrl"
+          name="longUrl"
+          placeholder="https://example.com/your/long/link"
+          required
+        />
+        <button type="submit">Shorten URL</button>
+      </form>
+    </div>
+  </body>
+</html>
