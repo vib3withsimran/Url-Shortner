@@ -28,26 +28,12 @@ It converts long messy URLs into **short, shareable links**, tracks link **click
 
 ---
 
-## 📌 Project Folder Structure
-📦 url-shortener
-├── 📁 backend
-│ ├── index.js
-│ └── 📁 views
-│ └── show.ejs
-├── 📁 public
-│ └── style.css
-└── 📁 frontend
-└── index.html
-
-
----
-
 ## 🧠 How Shortening Works (Logic)
 
 1. User submits a long URL through a form  
 2. Backend generates a unique short ID using:
 
-`js
+`js: 
 const shortId = crypto.randomBytes(3).toString("hex");
 3. The short ID + long URL is stored in an in-memory store (array/object)
 
