@@ -1,0 +1,12 @@
+[build]
+  command   = "npm install"
+  publish   = "public"
+  functions = "netlify/functions"
+
+# Route all requests through the Express serverless function
+# force = false means static files in /public are served directly by Netlify's CDN
+[[redirects]]
+  from   = "/*"
+  to     = "/.netlify/functions/api/:splat"
+  status = 200
+  force  = false

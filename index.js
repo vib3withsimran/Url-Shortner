@@ -45,6 +45,12 @@ app.get("/:shortId", (req, res) => {
     res.redirect(entry.longUrl);
 });
 
-app.listen(port, () => {
-    console.log(`App is listening on port ${port}`);
-});
+// Only start the server when run directly (local dev)
+// When imported by Netlify Functions, we just export the app
+if (require.main === module) {
+    app.listen(port, () => {
+        console.log(`App is listening on port ${port}`);
+    });
+}
+
+module.exports = app;
