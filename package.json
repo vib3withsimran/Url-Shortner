@@ -1,0 +1,17 @@
+{
+  "name": "shortly",
+  "version": "1.0.0",
+  "description": "A URL shortener that converts long, messy URLs into clean, short ones.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": ["url-shortener", "express", "nodejs"],
+  "author": "Simran",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^5.1.0"
+  }
+}
