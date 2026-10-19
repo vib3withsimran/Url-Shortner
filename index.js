@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const path = require("path");
 const express = require("express");
+const helmet = require("helmet");
 const store = require("./store");
 
 const app = express();
@@ -8,9 +9,60 @@ const port = process.env.PORT || 8080;
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
+
+// Security headers. CSP explicitly allows the CDN/font assets used by the
+// views and inline scripts (the copy button), which neither breaks the UI
+// nor weakens XSS protection for template data.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+        imgSrc: ["'self'", "data:"],
+        connectSrc: ["'self'"],
+      },
+    },
+  })
+);
+
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// ---- Rate limiting (POST /main only) ----
+// In-memory, per process. Local dev: exact. Serverless: best effort — each
+// Lambda instance has its own count, so this slows hammering but is not a
+// hard global cap. A shared store (e.g. Upstash Redis) would close that gap.
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX = 5;
+const rateHits = new Map();
+
+function pruneRateHits(now) {
+  for (const [ip, rec] of rateHits) {
+    if (now - rec.start > RATE_WINDOW_MS) rateHits.delete(ip);
+  }
+}
+
+function rateLimit(req, res, next) {
+  const now = Date.now();
+  if (rateHits.size > 1000) pruneRateHits(now);
+  const ip = req.ip || req.socket.remoteAddress || "unknown";
+  let rec = rateHits.get(ip);
+  if (!rec || now - rec.start > RATE_WINDOW_MS) {
+    rec = { start: now, count: 0 };
+    rateHits.set(ip, rec);
+  }
+  rec.count += 1;
+  if (rec.count > RATE_MAX) {
+    return res
+      .status(429)
+      .send("Too many requests — please wait a minute before shortening more links.");
+  }
+  next();
+}
 
 // Same message everywhere; never echo user input into it.
 const INVALID_URL_MSG =
@@ -39,7 +91,7 @@ app.get("/", (req, res) => {
 });
 
 // Shorten a URL
-app.post("/main", async (req, res) => {
+app.post("/main", rateLimit, async (req, res) => {
   const longUrl = parseUrl(req.body.longUrl);
   if (!longUrl) {
     return res.status(400).render("index", { error: INVALID_URL_MSG });
@@ -93,6 +145,17 @@ app.get("/:shortId", async (req, res) => {
 function notFound(res) {
   res.status(404).render("404");
 }
+
+// Anything not matched above
+app.use((req, res) => notFound(res));
+
+// Errors from async route handlers reach this in Express 5
+app.use((err, req, res, next) => {
+  if (!res.headersSent) {
+    console.error("Request failed:", err);
+    res.status(500).render("500");
+  }
+});
 
 // Only start the server when run directly (local dev)
 // When imported by Netlify Functions, we just export the app
