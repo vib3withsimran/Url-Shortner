@@ -10,3 +10,6 @@ yarn-error.log*
 .eslintcache
 *.tsbuildinfo
 .yarn-integrity
+
+# Local dev fallback storage (prod uses Netlify Blobs)
+data/

@@ -7,6 +7,9 @@
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
+  "engines": {
+    "node": ">=18"
+  },
   "keywords": [
     "url-shortener",
     "express",
@@ -15,8 +18,12 @@
   "author": "Simran",
   "license": "ISC",
   "dependencies": {
+    "@netlify/blobs": "^10.1.0",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "serverless-http": "^4.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
   }
 }

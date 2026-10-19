@@ -44,6 +44,13 @@
         instantly.
       </h4>
 
+      <% if (typeof error !== "undefined" && error) { %>
+      <div class="result-box">
+        <h3>Something went wrong</h3>
+        <p><%= error %></p>
+      </div>
+      <% } %>
+
       <!-- Form Section — action is relative, works on any host -->
       <form class="url-form" action="/main" method="POST">
         <label for="longUrl" class="form-label">Paste your long URL below</label>
