@@ -12,8 +12,15 @@ module.exports.handler = async (event, context) => {
   // ignored gracefully.
   try {
     connectLambda(event);
-  } catch {
-    /* Not a Netlify event — nothing to bind. */
+  } catch (err) {
+    // Never silently: this is exactly the failure mode that leaves Blobs
+    // unconfigured and produces opaque 500s downstream.
+    console.error(
+      "[api] connectLambda failed (runtime may not have injected event.blobs):",
+      err && err.message,
+      "\nevent keys:",
+      Object.keys(event || {}).join(",")
+    );
   }
   return expressHandler(event, context);
 };

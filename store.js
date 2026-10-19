@@ -31,18 +31,31 @@ const IS_NETLIFY_RUNTIME = Boolean(
 function getBlobs() {
   if (blobs) return blobs;
   if (!IS_NETLIFY_RUNTIME) return null; // local dev → use the JSON fallback
+  const { getStore: getStoreFn } = require("@netlify/blobs");
   try {
-    const { getStore } = require("@netlify/blobs");
-    blobs = getStore({ name: "shortly", consistency: "strong" });
+    // Automatic mode: needs env context bound by connectLambda(event).
+    blobs = getStoreFn({ name: "shortly", consistency: "strong" });
     return blobs;
   } catch (err) {
+    // Manual API-access fallback: does not rely on the runtime having
+    // injected the event context. Configure in Netlify UI:
+    //   NETLIFY_SITE_ID, NETLIFY_API_TOKEN (env vars)
+    const siteID = process.env.NETLIFY_SITE_ID;
+    const token = process.env.NETLIFY_API_TOKEN;
+    if (siteID && token) {
+      blobs = getStoreFn({ name: "shortly", siteID, token, consistency: "strong" });
+      console.log("[store] Blobs initialized in API-access mode (manual env vars)");
+      return blobs;
+    }
     // Never silently fall back to the local-file store in production: the
     // Lambda filesystem is read-only and /var/task/data cannot exist.
     console.error("[store] Netlify Blobs failed to initialize:", err && err.message, "\n", err && err.stack);
     throw new Error(
-      "Storage is unavailable: Netlify Blobs failed to initialize. " +
-        "Make sure @netlify/blobs is in package.json and a direct dependency " +
-        "was included in the deployed bundle, then redeploy."
+      "Storage is unavailable: Netlify Blobs failed to initialize (" +
+        (err && err.name) + "). " +
+        "Fix: make sure @netlify/blobs is in package.json and, to work around " +
+        "Lambda compatibility mode, set NETLIFY_SITE_ID and NETLIFY_API_TOKEN " +
+        "as site environment variables in the Netlify dashboard, then redeploy."
     );
   }
 }
