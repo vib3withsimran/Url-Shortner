@@ -119,6 +119,20 @@ Open [http://localhost:8080](http://localhost:8080) in your browser.
 
 ---
 
+## 🧯 Troubleshooting deploys
+
+- **`MissingBlobsEnvironmentError`** — Netlify Blobs cannot auto-configure
+  while functions run in **Lambda compatibility mode** (`serverless-http`).
+  This is already handled: `netlify/functions/api.js` calls
+  `connectLambda(event)` before routing to Express. If you ever see this
+  error, make sure `@netlify/blobs` is in `package.json` and that the
+  `connectLambda` call is still present in the wrapper.
+- **`ENOENT mkdir /var/task/data`** — a previous version silently fell back
+  to the local JSON store in production (the Lambda filesystem is
+  read-only). Current code fails loudly with an actionable message instead.
+
+---
+
 ## 📝 Notes
 
 - **Storage** — In production the app persists links in Netlify Blobs
