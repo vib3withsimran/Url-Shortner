@@ -14,6 +14,7 @@ A clean and fast **URL Shortening service** built with **Node.js, Express, and E
 - 📊 **Click Analytics** — Tracks how many times each short link was visited
 - 🔐 **Crypto-based IDs** — Secure unique ID generation via Node.js `crypto` module
 - 🎨 **Clean UI** — Minimal, responsive frontend served directly by Express
+- 🚄 **Serverless-ready** — Deploys to Netlify with persistent storage via Netlify Blobs
 
 ---
 
@@ -21,10 +22,12 @@ A clean and fast **URL Shortening service** built with **Node.js, Express, and E
 
 | Component | Technology |
 |-----------|------------|
-| **Runtime** | Node.js v22+ |
+| **Runtime** | Node.js v18+ |
 | **Framework** | Express.js v5.1 |
 | **Templating** | EJS v3.1 |
 | **ID Generation** | Node.js `crypto` module |
+| **Storage** | Netlify Blobs (prod) / local JSON file (dev) |
+| **Hosting** | Netlify Functions + static CDN |
 | **Frontend** | HTML5, CSS3, Vanilla JS |
 
 ---
@@ -33,23 +36,30 @@ A clean and fast **URL Shortening service** built with **Node.js, Express, and E
 
 ```
 Shortly/
-├── index.js          # Express server + all routes
-├── package.json      # Dependencies & scripts
-├── .gitignore
+├── index.js               # Express app + all routes
+├── store.js               # Storage layer: Netlify Blobs (prod) / JSON file (dev)
+├── package.json
+├── netlify.toml           # Netlify build + redirect config
+├── netlify/
+│   └── functions/
+│       └── api.js         # serverless-http wrapper around the app
+├── test/                  # node --test suite (app + serverless wrapper)
 ├── views/
-│   ├── index.ejs     # Landing page (URL input form)
-│   └── show.ejs      # Result page (short link + analytics)
+│   ├── index.ejs          # Landing page (URL input form)
+│   ├── show.ejs           # Result page (short link + analytics)
+│   ├── 404.ejs            # Not-found page
+│   └── 500.ejs            # Error page
 └── public/
-    ├── style.css     # Shared stylesheet
-    ├── logo.jpeg     # App logo
-    └── bgg.jpg       # Background image
+    ├── style.css          # Shared stylesheet
+    ├── logo.jpeg          # App logo
+    └── bgg.jpg            # Background image
 ```
 
 ---
 
 ## 📦 Prerequisites
 
-- **Node.js** v14 or higher
+- **Node.js** v18 or higher
 - **npm** (comes with Node.js)
 
 ---
@@ -71,6 +81,8 @@ npm start
 Open [http://localhost:8080](http://localhost:8080) in your browser.
 
 > For development with auto-reload: `npm run dev` (requires nodemon)
+>
+> Run the test suite: `npm test`
 
 ---
 
@@ -96,20 +108,37 @@ Open [http://localhost:8080](http://localhost:8080) in your browser.
 ## 🔍 How It Works
 
 ```
-1. User submits a long URL via the form
-2. Server generates a unique 6-char ID:
+1. User submits a long URL via the form (validated; only http/https)
+2. Server generates a unique 6-char ID (retried on collision):
        crypto.randomBytes(3).toString("hex")  →  "a1b2c3"
-3. Short URL + original URL stored in memory
-4. Visiting /:shortId → redirect to original URL
+3. Short URL + original URL persisted in the store (Blobs or JSON file)
+4. Visiting /:shortId → redirect to original URL + click count++
 5. Visiting /stats/:shortId → view click count
+6. POST /main is rate-limited to 5 submissions per minute per client
 ```
 
 ---
 
 ## 📝 Notes
 
-- **In-memory storage** — URLs are stored in a JS object and reset on server restart
-- **No database** — intentionally kept simple; see future improvements below
+- **Storage** — In production the app persists links in Netlify Blobs
+  (survives cold starts and deploys, shared by every function instance).
+  Locally it falls back to `data/urls.json` (gitignored) so dev matches prod.
+- **Rate limiting** — Per-client, in-memory. Exact locally; best-effort
+  across serverless instances (a shared store like Upstash Redis would
+  make it a hard global cap).
+- **Security** — Helmet security headers with a CSP allowing only the
+  CDNs the views actually use. Submitted URLs must parse as http(s).
+
+---
+
+## 🚀 Deploying
+
+1. Commit and push this repo to GitHub.
+2. app.netlify.com → **Add new site → Import an existing project** → pick the repo.
+3. Leave build settings at defaults — `netlify.toml` configures everything.
+4. Done: `@netlify/blobs` in `package.json` is picked up automatically;
+   the live site works 24/7 from any device.
 
 ---
 
@@ -118,8 +147,8 @@ Open [http://localhost:8080](http://localhost:8080) in your browser.
 - [ ] 🛢 Persist URLs in MongoDB / PostgreSQL
 - [ ] 🔐 User accounts + login
 - [ ] ⏳ Link expiry / TTL
-- [ ] 📋 Personal dashboard with analytics
-- [ ] 🔒 Custom short codes
+- [ ] 👤 Personal dashboard with analytics
+- [ ] 🛠 Global rate limiting via a shared store (e.g. Upstash Redis)
 
 ---
 

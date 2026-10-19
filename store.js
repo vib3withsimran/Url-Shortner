@@ -23,15 +23,27 @@ const DATA_FILE = path.join(DATA_DIR, "urls.json");
 let blobs = null;
 let localCache = null;
 
+// True inside Netlify Functions (also true for most AWS Lambda runtimes).
+const IS_NETLIFY_RUNTIME = Boolean(
+  process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME
+);
+
 function getBlobs() {
   if (blobs) return blobs;
+  if (!IS_NETLIFY_RUNTIME) return null; // local dev → use the JSON fallback
   try {
-    // Throws MissingBlobsEnvironmentError outside the Netlify runtime.
     const { getStore } = require("@netlify/blobs");
     blobs = getStore({ name: "shortly", consistency: "strong" });
     return blobs;
-  } catch {
-    return null;
+  } catch (err) {
+    // Never silently fall back to the local-file store in production: the
+    // Lambda filesystem is read-only and /var/task/data cannot exist.
+    console.error("[store] Netlify Blobs failed to initialize:", err && err.message, "\n", err && err.stack);
+    throw new Error(
+      "Storage is unavailable: Netlify Blobs failed to initialize. " +
+        "Make sure @netlify/blobs is in package.json and a direct dependency " +
+        "was included in the deployed bundle, then redeploy."
+    );
   }
 }
 
@@ -56,11 +68,8 @@ function localWrite(map) {
 // is storage-agnostic.
 async function readMap(name) {
   const store = getBlobs();
-  if (store) {
-    const raw = await store.get(name);
-    return raw ? JSON.parse(raw) : {};
-  }
-  return localRead()[name] || {};
+  if (store) return JSON.parse((await store.get(name)) || "null") || {}; // happy path
+  return localRead()[name] || {}; // local dev only (see getBlobs)
 }
 
 async function writeMap(name, map) {
